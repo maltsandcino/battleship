@@ -1,4 +1,4 @@
-class Ship{
+export default class Ship{
     static id = 0;
 
     constructor(hp){
@@ -11,11 +11,10 @@ class Ship{
     hits(){
         this.hitsTaken += 1
         this.sunk = this.isSunk()
+        return this.sunk
     }
 
     isSunk(){
         return this.hitsTaken === this.hp
     }
 }
-
-module.exports = Ship;
