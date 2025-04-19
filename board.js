@@ -1,7 +1,7 @@
 import Ship from './ship.js';
 
 
-class Board{
+export default class Board{
     static sizes =  [2, 2, 3, 3, 5]
 
     constructor(){
