@@ -1,9 +1,11 @@
-//
 class Ship{
+    static id = 0;
+
     constructor(hp){
         this.hp = hp;
         this.sunk = false;
         this.hitsTaken = 0;
+        this.id = Ship.id++
     }
 
     hits(){
@@ -15,3 +17,5 @@ class Ship{
         return this.hitsTaken === this.hp
     }
 }
+
+module.exports = Ship;
