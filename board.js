@@ -2,7 +2,7 @@ import Ship from './ship.js';
 
 
 export default class Board{
-    static sizes =  [2, 2, 3, 3, 5]
+    static sizes =  [5, 4, 4, 3, 3]
 
     constructor(){
         //We can list co-ordinates and the associated ship in the placements.

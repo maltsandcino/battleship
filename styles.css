@@ -4,6 +4,11 @@
     100%{transform: scale(1)}
 }
 
+@keyframes opacity{
+    0%{opacity: 0; display:grid}
+    100%{opacity: 1;display: none}
+}
+
 body{
     box-sizing: border-box;
     padding: 0px;
@@ -20,7 +25,7 @@ body{
     display: grid;
     justify-items: center;
     align-items: center;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     grid-template-rows: 1fr;
 }
 
@@ -31,7 +36,8 @@ body{
     grid-template: 1fr /1fr  1fr;
 }
 .boardBS {
-    display: grid;
+    
+    display: none;
     position: relative;
     overflow: visible;
     grid-template-rows: repeat(10, 1fr);
@@ -42,12 +48,49 @@ body{
     border: 1px dotted black;
 }
 
+.opp {
+    display: none;
+}
+
+.oppCell:hover{
+  background: radial-gradient(circle, #ff0000, lightcyan, lightcyan, lightcyan);
+}
+
+.oppCellHit{
+    background: none;
+    background-color: orangered;
+}
+
+.oppCellHit:hover{
+    background: none;
+    background-color: red;
+}
+
+.oppCellMiss{
+    background: none;
+    background-color: gray;
+}
+
+.oppCellMiss:hover{
+    background: none;
+    background-color: red;
+}
+
 .cell {
     border: 1px dotted black;
     background-color: lightcyan;
     display: grid;
     align-items: center;
     justify-content: center;
+}
+
+.cellOccupied {
+    background-color: tan;
+}
+
+.goVisible {
+    animation: opacity 2s ease-in-out forwards;
+
 }
 
 .questions {
