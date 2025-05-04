@@ -43,6 +43,7 @@ body{
     display: block; 
     margin: auto; 
     animation: sail 12s infinite linear;
+    overflow: hidden;
 }
 
 .pageBS{
@@ -57,6 +58,7 @@ body{
     align-items: center;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr;
+    overflow: hidden;
 }
 
 .buttoncontainerBS{

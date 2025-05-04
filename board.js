@@ -55,6 +55,7 @@ export default class Board{
     computerAttack() {
         // If no hits have been recorded, perform a random attack
         if (Object.keys(this.hits).length === 0) {
+            console.log("Random Choice")
             let coordString;
             let x, y;
     
@@ -65,9 +66,7 @@ export default class Board{
                 coordString = [x, y].toString();
             } while (this.guesses.hasOwnProperty(coordString));
     
-            // Mark the coordinate as guessed
-            this.guesses[coordString] = null;
-    
+           
             // Check if the attack hits a ship
             let hit = false;
             let sunken = false;
@@ -75,11 +74,16 @@ export default class Board{
                 sunken = this.completeAttack(this.placements.get(coordString));
                 if (sunken) {
                     this.ships_remaining -= 1;
+                    // If this has somehow sunk it, which should not be the case unless a ship is only 1 space, which could be coded later.
                     delete this.hits[this.placements.get(coordString)];
                 }
                 hit = true;
-                this.hits[this.placements.get(coordString)] = [x, y]; // Store as an array
+
+                this.hits[this.placements.get(coordString)] = [x, y, y]; // Store the X (the row) and the start and end point, in this case, y y
+            
             }
+            // Update the guesses with the result
+            this.guesses[coordString] = hit;
     
             // Return the result of the attack
             return [hit, x, y, sunken, this.ships_remaining];
@@ -94,25 +98,10 @@ export default class Board{
     
             if (rchoice === 0) {
                 // Target left
-                if (l - 1 >= 0) {
-                    z = l - 1;
-                    if (this.guesses.hasOwnProperty([x, z].toString())) {
-                        z = r + 1; // Switch to right if left has already been guessed
-                    }
-                }
+                [x, z] = this.pickLeft(x, l, r)
             } else {
-                // Target right
-                if (r + 1 < 10) {
-                    z = r + 1;
-                    if (this.guesses.hasOwnProperty([x, z].toString())) {
-                        z = l - 1; // Switch to left if right has already been guessed
-                    }
-                }
+                [x, z] = this.pickRight(x, l, r)
             }
-    
-            // Mark the coordinate as guessed
-            this.guesses[[x, z].toString()] = null;
-    
             // Check if the attack hits a ship
             let hit = false;
             let sunken = false;
@@ -125,14 +114,90 @@ export default class Board{
                 }
                 else{
                 hit = true;
-                this.hits[this.placements.get([x, z].toString())] = [x, l, r]; // Store as an array
+                this.hits[this.placements.get([x, z].toString())] = [x, Math.min(l, z), Math.max(r, z)];
                 }
             }
+                // Mark the coordinate as guessed
+                this.guesses[[x, z].toString()] = hit;
     
             // Return the result of the attack
             return [hit, x, z, sunken, this.ships_remaining];
         }
     }
+
+    pickLeft(x, l, r){
+        let z
+        if (l - 1 >= 0) {
+            z = l - 1;
+            while(this.guesses.hasOwnProperty([x, z].toString())) {
+                if (this.guesses[[x, z].toString()] == true){
+                z = z - 1}
+                else if (this.guesses[[x, z].toString()] == false || z === -1){
+                    if (!this.guesses.hasOwnProperty([x, r + 1].toString())) {
+                        return this.pickRight(x, l, r);
+                    }
+                    return this.computerAttackFallback();
+                }
+            }
+        }
+        else{
+            return this.pickRight(x, l, r)
+        }
+        return [x, z]
+    }
+
+    pickRight(x, l, r){
+        let z
+        if (r + 1 < 10) {
+            z = r + 1;
+            while(this.guesses.hasOwnProperty([x, z].toString())) {
+                if (this.guesses[[x, z].toString()] == true){
+                z = z + 1}
+                else if (this.guesses[[x, z].toString()] == false || z === 10){
+                    if (!this.guesses.hasOwnProperty([x, l - 1].toString())) {
+                        return this.pickLeft(x, l, r);
+                    }
+                    return this.computerAttackFallback();
+                }
+            }
+        }
+        else{
+            return this.pickLeft(x, l, r)
+        }
+        return [x, z]
+    }
+
+    computerAttackFallback(){
+        console.log("Random Choice")
+        do {
+            x = Math.floor(Math.random() * 10);
+            y = Math.floor(Math.random() * 10);
+            coordString = [x, y].toString();
+        } while (this.guesses.hasOwnProperty(coordString));
+
+       
+        // Check if the attack hits a ship
+        let hit = false;
+        let sunken = false;
+        if (this.placements.has(coordString)) {
+            sunken = this.completeAttack(this.placements.get(coordString));
+            if (sunken) {
+                this.ships_remaining -= 1;
+                // If this has somehow sunk it, which should not be the case unless a ship is only 1 space, which could be coded later.
+                delete this.hits[this.placements.get(coordString)];
+            }
+            hit = true;
+
+            this.hits[this.placements.get(coordString)] = [x, y, y]; // Store the X (the row) and the start and end point, in this case, y y
+        
+        }
+        // Update the guesses with the result
+        this.guesses[coordString] = hit;
+
+        // Return the result of the attack
+        return [hit, x, y, sunken, this.ships_remaining];
+
+    };
 
     placeComputer(){
         for(let ship of Object.values(this.ships)){
