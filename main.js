@@ -197,6 +197,12 @@ class Control{
         let sunken
         let x = parseInt(event.target.dataset.x)
         let y = parseInt(event.target.dataset.y)
+        if (event.target.classList.contains("oppCellHit") || event.target.classList.contains("oppCellMiss")){
+            alert("Choose a different square u tried here already")
+            return
+        
+        }
+        
 
         if (gamestyle == "computer"){
 
@@ -234,14 +240,13 @@ class Control{
             }
             // Update Player 1 Board
             if (result1 == true){
-                console.log("======")
-                console.log([x1, y1])
+             
+           
                 document.getElementById(`${x1}${y1}0`).style.backgroundColor="orangeRed"
                 document.getElementById(`${x1}${y1}0`).classList.add("oppCellHit")
             }
             else{
-                console.log("======")
-                console.log([x1, y1])
+       
                 document.getElementById(`${x1}${y1}0`).classList.add("oppCellMiss")
             }
 
@@ -270,12 +275,12 @@ class Control{
 
         if (attacked == 2){
             [result, sunken, ships_remaining] = this.board1.receiveAttack(x, y)
-            console.log([result, sunken, ships_remaining])
+
           
         }
         else{
             [result, sunken, ships_remaining] = this.board0.receiveAttack(x, y)
-            console.log([result, sunken, ships_remaining])
+
         }
 
         if (parseInt(ships_remaining) === 0){
@@ -290,16 +295,34 @@ class Control{
         }
         if (attacked == 2){
             document.getElementById("score1").innerHTML = ships_remaining
+            if (result == true){
+                document.getElementById(`${x}${y}1`).style.backgroundColor="orangeRed"
+                document.getElementById(`${x}${y}1`).classList.add("oppCellHit")
+            }
+            else{
+                document.getElementById(`${x}${y}1`).style.backgroundColor="grey"
+                document.getElementById(`${x}${y}1`).classList.add("oppCellMiss")
+
+            }
         }
         else {
             document.getElementById("score2").innerHTML = ships_remaining
+            if (result == true){
+                document.getElementById(`${x}${y}0`).style.backgroundColor="orangeRed"
+                document.getElementById(`${x}${y}0`).classList.add("oppCellHit")
+            }
+            else{
+                document.getElementById(`${x}${y}0`).style.backgroundColor="grey"
+                document.getElementById(`${x}${y}0`).classList.add("oppCellMiss")
+
+            }
         }
         can_attack = false
         setTimeout(() => this.switchScreen(), 2000)
     }
 
     showEndGame(winner_name=null){
-            console.log("end")
+            
             // Clear the screen
             const gameContainer = document.getElementById("topthirdsBS");
             gameContainer.innerHTML = ""; 
@@ -312,13 +335,14 @@ class Control{
         
             // Append it to the container
             gameContainer.appendChild(img);
+            let winner = winner_name
             if(!winner_name){
-            let winner = this.Player1
+            winner = this.Player1
             if (active == 0){
-                winner = this.Player2
+            winner = this.Player2
             }}
             else{
-                winner = winner_name
+                let winner = winner_name
             }
             let body = document.getElementsByTagName("body")[0]
             body.style.backgroundColor = "#000000"
@@ -534,7 +558,7 @@ class Control{
                     i++;
                 }
             }
-            console.log(no_neighbours)
+            
             if (no_neighbours === false || right > 9){
                 if (event.target.dataset.occupied === "true"){
                     event.target.style.backgroundColor = "tan"
@@ -553,7 +577,7 @@ class Control{
             else{
                 player_board = this.board1
             }
-            console.log(boat.id)
+           
             let boat_num = boat.id[1]
 
             for (let i = 0; i < length; i++) {
@@ -631,7 +655,7 @@ class Control{
 
     showScreen(){
         let player = active
-        console.log(`showing player ${player}`)
+      
         if (player == 0){
              document.getElementById("player1boardBS").style.display = "grid"
              document.getElementById("opponentBoard1").style.display = "grid"

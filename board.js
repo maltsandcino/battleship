@@ -42,11 +42,7 @@ export default class Board{
 
     // This method seems a little redundant
     completeAttack(ship){
-        console.log("complete attack")
-        console.log(ship)
-        console.log(this.ships)
-        console.log(Object.keys(this.ships));
-        console.log(typeof ship)
+
         let shipo = this.ships[String(ship)]
         let sunken = shipo.hits()
         return sunken
@@ -55,7 +51,7 @@ export default class Board{
     computerAttack() {
         // If no hits have been recorded, perform a random attack
         if (Object.keys(this.hits).length === 0) {
-            console.log("Random Choice")
+     
             let coordString;
             let x, y;
     
@@ -168,7 +164,7 @@ export default class Board{
     }
 
     computerAttackFallback(){
-        console.log("Random Choice")
+     
         do {
             x = Math.floor(Math.random() * 10);
             y = Math.floor(Math.random() * 10);
@@ -230,7 +226,7 @@ export default class Board{
             }
             coords.forEach(spot => this.placements.set(spot, ship.id));
             }
-            console.table(this.placements)
+       
         }
 
         
