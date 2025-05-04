@@ -5,6 +5,8 @@ let currentBoatID = null;
 let previouslyHighlightedCells = [];
 let turn = 0;
 let gamestyle = "human"
+let active = 0;
+let can_attack = true;
 
 //Todo: Make logic for turning ships 90 degrees.
 
@@ -21,13 +23,14 @@ class Control{
         let p = document.querySelector(".person");
         let c = document.querySelector(".computer");
         p.addEventListener("click", () => this.getPlayerNames("human"));
-        c.addEventListener("click", () => this.startcomputergame("computer"));
+        c.addEventListener("click", () => this.getPlayerNames("computer"));
     }
 
     // Starting a human based game
     // MAybe change the input and label divs to make them closer together.
     getPlayerNames(type){
-        console.log(type)
+     
+        
         let buttons = document.querySelector(".buttoncontainerBS");
         buttons.style.gridTemplateColumns = "1fr 1fr 1fr 1fr"
         let displayarea = document.querySelector(".boatholder")   
@@ -59,8 +62,8 @@ class Control{
 
     }
     starthumangame(){
-        console.log(this.Player1)
-        console.log(this.Player2)
+ 
+        document.getElementById("boi").remove()
         
         let buttons = document.querySelector(".buttoncontainerBS");
         // buttons.style.display = "none"
@@ -79,10 +82,21 @@ class Control{
     }
     // Starting a computer based game. needs to be implemented still.
     startcomputergame(){
-        
+        gamestyle = "computer"
+        document.getElementById("boi").remove()
         let buttons = document.querySelector(".buttoncontainerBS");
-        console.log("buttons")
-        buttons.style.display = "none"
+        // buttons.style.display = "none"
+        let instructions = document.querySelector(".starttext")
+        instructions.innerHTML = `${this.Player1}: Please place boats onto the grid`
+        let displayarea = document.querySelector(".boatholder")
+        displayarea.innerHTML = ""       
+        // Add and append images player 1
+        this.createGrid()
+        this.appendimages1(displayarea)
+        this.dragBoats()
+
+        buttons.style.gridTemplateColumns = "1fr"
+        buttons.innerText = "Ships can be dragged and placed on the grid. Make sure you are happy with your choice before letting go." 
     }
 
     // Create a DOM grid for players.
@@ -93,9 +107,9 @@ class Control{
         let oppboard2 = document.getElementById("opponentBoard2")
 
         oppboard1.removeEventListener("click", this.attack);
-        oppboard1.addEventListener("click", this.attack);
+        oppboard1.addEventListener("click", this.attack.bind(this));
         oppboard2.removeEventListener("click", this.attack);
-        oppboard2.addEventListener("click", this.attack);
+        oppboard2.addEventListener("click", this.attack.bind(this));
 
         oppboard1.innerHTML = ""
         oppboard2.innerHTML = ""
@@ -177,9 +191,191 @@ class Control{
     }
 // Attack event, this is a click.
     attack(){
-        //If cell already clicked, we can't attack.
-        console.log(event.target.id)
+        //Gather data about the attack
+        let ships_remaining
+        let result
+        let sunken
+        let x = parseInt(event.target.dataset.x)
+        let y = parseInt(event.target.dataset.y)
+
+        if (gamestyle == "computer"){
+
+            //IF this is already a clicked square
+            if (event.target.classList.contains("oppCellHit") || event.target.classList.contains("oppCellMiss")){
+                alert("Choose a different square u tried here already")
+                return
+            }
+            // Execute, get results
+           
+            [result, sunken, ships_remaining] = this.board1.receiveAttack(x, y)
+           
+            // Change colors
+            if (result == true){
+                event.target.classList.add("oppCellHit")
+            }
+            else {
+                event.target.classList.add("oppCellMiss")
+            }
+            if (ships_remaining === 0){
+                this.showEndGame(this.Player1)
+                return
+            }
+            // Update info
+            document.getElementById("score1").innerHTML = `${ships_remaining}`
+
+            // Computer Turn
+            
+            let result1, x1, y1, sunken1, ships_remaining1;
+            [result1, x1, y1, sunken1, ships_remaining1] = this.board0.computerAttack();
+            
+
+            if (ships_remaining === 0){
+                this.showEndGame(this.Player2)
+            }
+            // Update Player 1 Board
+            if (result1 == true){
+                console.log("======")
+                console.log([x1, y1])
+                document.getElementById(`${x1}${y1}0`).style.backgroundColor="orangeRed"
+                document.getElementById(`${x1}${y1}0`).classList.add("oppCellHit")
+            }
+            else{
+                console.log("======")
+                console.log([x1, y1])
+                document.getElementById(`${x1}${y1}0`).classList.add("oppCellMiss")
+            }
+
+            if (ships_remaining === 0){
+                this.showEndGame()
+            
+        }
+        return
     }
+
+        if (!can_attack){
+            return
+        }
+        //If cell already clicked, we can't attack.
+        if (event.target.classList.contains("oppCellHit") || event.target.classList.contains("oppCellMiss")){
+            alert("Choose a different square u tried here already")
+            return
+        
+        }
+        
+        //determine which board to attack:
+        let attacked = parseInt(event.target.dataset.player)
+        
+
+
+
+        if (attacked == 2){
+            [result, sunken, ships_remaining] = this.board1.receiveAttack(x, y)
+            console.log([result, sunken, ships_remaining])
+          
+        }
+        else{
+            [result, sunken, ships_remaining] = this.board0.receiveAttack(x, y)
+            console.log([result, sunken, ships_remaining])
+        }
+
+        if (parseInt(ships_remaining) === 0){
+            this.showEndGame()
+
+        }
+        if (result == true){
+            event.target.classList.add("oppCellHit")
+        }
+        else {
+            event.target.classList.add("oppCellMiss")
+        }
+        if (attacked == 2){
+            document.getElementById("score1").innerHTML = ships_remaining
+        }
+        else {
+            document.getElementById("score2").innerHTML = ships_remaining
+        }
+        can_attack = false
+        setTimeout(() => this.switchScreen(), 2000)
+    }
+
+    showEndGame(winner_name=null){
+            console.log("end")
+            // Clear the screen
+            const gameContainer = document.getElementById("topthirdsBS");
+            gameContainer.innerHTML = ""; 
+        
+            // Create the image element
+            const img = document.createElement("img");
+            img.src = "assets/game-over-insert-coins.gif"; 
+            img.id = "gameOverImage";
+          
+        
+            // Append it to the container
+            gameContainer.appendChild(img);
+            if(!winner_name){
+            let winner = this.Player1
+            if (active == 0){
+                winner = this.Player2
+            }}
+            else{
+                winner = winner_name
+            }
+            let body = document.getElementsByTagName("body")[0]
+            body.style.backgroundColor = "#000000"
+            body.style.color = "#ffffff"
+            setTimeout(() => {
+                img.style.opacity = "1";
+            }, 100);
+            document.querySelector(".starttext").innerHTML = `${winner} wins!`
+            document.getElementById("scoreholder").innerHTML = ""
+            document.querySelector(".buttoncontainerBS").innerHTML = ""
+            document.querySelector(".boatholder").innerHTML = '<button id="playagain">Play Again?</button>'
+            document.getElementById("playagain").addEventListener("click", () => this.reset(body))
+        
+            // Trigger the fade-in effect
+          // Small delay to ensure transition applies
+        
+    }
+
+    reset(body){
+        body.style.backgroundColor = "#ffffff"
+        body.style.color = "#000000"
+        body.innerHTML = `<body>
+        
+    <div class="pageBS">
+        <div class="topthirdsBS" id="topthirdsBS">
+        <img class="titlei" id="boi" src="assets/shipt.jpg">
+            <div id="player1boardBS" class="boardBS"></div>
+            <div id="player2boardBS" class="boardBS"></div>
+            <div id="opponentBoard1" class="boardBS opp"></div>
+            <div id="opponentBoard2" class="boardBS opp"></div>
+        </div>
+        <div class="questions">
+            <div class="starttext">
+            Click below to choose a type of game:
+            </div>
+            <div class="scoreholder remaningInvisible" id="scoreholder">
+                <div id="scores1" class="remaining remaningInvisible"><div>Enemy Ships Remaining:</div><div id="score1">5</div></div>
+                <div id="scores2" class="remaining remaningInvisible"><div>Enemy Ships Remaining:</div><div id="score2">5</div></div>
+            </div>
+            <div class="boatholder">
+            
+            </div>
+        </div>
+        <div class="buttoncontainerBS">
+            <button class="person">Human vs Human</button>
+            <button class="computer">Human vs Computer</button>
+        </div>
+    </div>
+    
+</body>
+</html>`
+
+    let control = new Control();
+    control.gameType();
+    }
+
+
 // Add boat images. We want to do this once for player 1 and once for player 2. If there's a computer match, we will use a different method
     appendimages1(div){
         document.getElementById("player2boardBS").style.display = "none"
@@ -188,37 +384,32 @@ class Control{
         img0.src = "assets/5.png"; 
         img0.alt = "longboatislong"
         img0.id = "00-boat"
-        img0.dataset.length = 5
+        img0.dataset.length = 4
         img0.draggable = true
         const img1 = document.createElement("img");
         img1.src = "assets/4.png"; 
         img1.alt = "mediumboat"
         img1.id = "01-boat"
-        img1.dataset.length = 4
+        img1.dataset.length = 3
         img1.draggable = true
         const img2 = document.createElement("img");
         img2.src = "assets/4.png"; 
         img2.alt = "mediumboat"
         img2.id = "02-boat"
-        img2.dataset.length = 4
+        img2.dataset.length = 3
         img2.draggable = true
         const img3 = document.createElement("img");
         img3.src = "assets/3.png"; 
         img3.alt = "shotboat"
         img3.id = "03-boat"
-        img3.dataset.length = 3
+        img3.dataset.length = 2
         img3.draggable = true
-        const img4 = document.createElement("img");
-        img4.src = "assets/3.png"; 
-        img4.alt = "shortboat"
-        img4.id = "04-boat"
-        img4.dataset.length = 3
-        img4.draggable = true
+  
         div.appendChild(img0)
         div.appendChild(img1)
         div.appendChild(img2)
         div.appendChild(img3)
-        div.appendChild(img4)
+   
     }
 
     appendimages2(div){
@@ -229,38 +420,33 @@ class Control{
         const img0 = document.createElement("img");
         img0.src = "assets/5.png"; 
         img0.alt = "longboatislong"
-        img0.id = "10-boat"
-        img0.dataset.length = 5
+        img0.id = "15-boat"
+        img0.dataset.length = 4
         img0.draggable = true
         const img1 = document.createElement("img");
         img1.src = "assets/4.png"; 
         img1.alt = "mediumboat"
-        img1.id = "11-boat"
-        img1.dataset.length = 4
+        img1.id = "16-boat"
+        img1.dataset.length = 3
         img1.draggable = true
         const img2 = document.createElement("img");
         img2.src = "assets/4.png"; 
         img2.alt = "mediumboat"
-        img2.id = "12-boat"
-        img2.dataset.length = 4
+        img2.id = "17-boat"
+        img2.dataset.length = 3
         img2.draggable = true
         const img3 = document.createElement("img");
         img3.src = "assets/3.png"; 
         img3.alt = "shotboat"
-        img3.id = "13-boat"
-        img3.dataset.length = 3
+        img3.id = "18-boat"
+        img3.dataset.length = 2
         img3.draggable = true
-        const img4 = document.createElement("img");
-        img4.src = "assets/3.png"; 
-        img4.alt = "shortboat"
-        img4.id = "14-boat"
-        img4.dataset.length = 3
-        img4.draggable = true
+
         div.appendChild(img0)
         div.appendChild(img1)
         div.appendChild(img2)
         div.appendChild(img3)
-        div.appendChild(img4)
+     
     }
     // Making boats draggable
     dragBoats() {
@@ -374,7 +560,7 @@ class Control{
                 if (currentCell) {
                     currentCell.dataset.occupied = true;
                     currentCell.classList.add("cellOccupied")
-                    let key = JSON.stringify([currentCell.dataset.x, currentCell.dataset.y])
+                    let key = [currentCell.dataset.x, currentCell.dataset.y].toString()
                     player_board.placements.set(key, boat_num)
                     currentCell.innerHTML = `Boat ${boatName}`
                     currentCell = currentCell.nextElementSibling;
@@ -391,48 +577,83 @@ class Control{
         }
         if (document.getElementsByTagName("img").length == 0 && turn == 1 && gamestyle == "human"){
             turn = 0
-            setTimeout(() => this.switchScreen(0), 2000)
+            document.querySelector(".pageBS").style.gridTemplateRows = "66VH 20VH 5VH 5VH"
+            document.getElementById("scoreholder").classList.remove("remaningInvisible")
+          
+            this.switchScreen()
+        }
+        if (document.getElementsByTagName("img").length == 0 && turn == 0 && gamestyle == "computer"){
+            turn = 1
+            this.board1.placeComputer()
+            this.beginFightComputer()
         }
 
     }
+
+    beginFightComputer(){
+        document.querySelector(".starttext").innerHTML = "Click on a square on the grid to attack"
+        document.getElementById("scores1").classList.add("remaningInvisible")
+        document.getElementById("topthirdsBS").style.gridTemplateColumns = "1fr 1fr"
+        document.getElementById("player1boardBS").style.display = "grid"
+        document.getElementById("opponentBoard1").style.display = "grid"
+        document.getElementById("scores1").classList.remove("remaningInvisible")
+        document.getElementById("scoreholder").classList.remove("remaningInvisible")
+        document.querySelector(".buttoncontainerBS").innerHTML = "Click on a space on the board on the right to launch your attack. Only click a space you haven't tried already."
+        
+    }
+
+
     //We pass the player number to the switch screen, and mod it by 2 to determine which player goes.
-    switchScreen(player){
+    switchScreen(){
+        can_attack = true
         document.getElementById("topthirdsBS").style.gridTemplateColumns = "1fr 1fr"
         document.getElementById("player2boardBS").style.display = "none"
         document.getElementById("player1boardBS").style.display = "none"
-         document.getElementById("opponentBoard1").style.display = "none"
+        document.getElementById("opponentBoard1").style.display = "none"
         document.getElementById("opponentBoard2").style.display = "none"
-        let player_num = player % 2
+        document.getElementById("scores1").classList.add("remaningInvisible")
+        document.getElementById("scores2").classList.add("remaningInvisible")
         let message = ""
-        if (player_num == 0){
+        if (active == 0){
             message = `Switching to ${this.Player1}'s view.`
             document.querySelector(".boatholder").innerHTML = '<button id="playerViewbutton">Show My View</button>'
-            document.getElementById("playerViewbutton").addEventListener("click", () => this.showScreen(0))
+            document.getElementById("playerViewbutton").addEventListener("click", () => this.showScreen())
         }
         else{
             message = `Switching to ${this.Player2}'s view`
             document.querySelector(".boatholder").innerHTML = '<button id="playerViewbutton">Show My View</button>'
-            document.getElementById("playerViewbutton").addEventListener("click", () => this.showScreen(1))
+            document.getElementById("playerViewbutton").addEventListener("click", () => this.showScreen())
         }
         document.querySelector(".starttext").innerHTML = message
         document.querySelector(".buttoncontainerBS").innerHTML = "When you're ready, click the button above to reveal your screen. Don't let your opponent see your screen."
         
     }
 
-    showScreen(player){
+    showScreen(){
+        let player = active
         console.log(`showing player ${player}`)
         if (player == 0){
              document.getElementById("player1boardBS").style.display = "grid"
              document.getElementById("opponentBoard1").style.display = "grid"
+             document.getElementById("scores1").classList.remove("remaningInvisible")
+             document.querySelector(".starttext").innerHTML = `${this.Player1}'s turn`
         }
         else{
         document.getElementById("player2boardBS").style.display = "grid"        
         document.getElementById("opponentBoard2").style.display = "grid"
-    }
-        document.querySelector(".starttext").innerHTML = ""
+        document.getElementById("scores2").classList.remove("remaningInvisible")
+        document.querySelector(".starttext").innerHTML = `${this.Player2}'s turn`
+    }   
+        if (active == 0){
+            active = 1
+        }
+        else {
+            active = 0
+        }
+        
         document.querySelector(".buttoncontainerBS").innerHTML = "Click on a space on the board on the right to launch your attack. Only click a space you haven't tried already."
-        document.querySelector(".boatholder").innerHTML = '<button id="playerViewbutton">temp example</button>'
-        document.getElementById("playerViewbutton").addEventListener("click", () => this.switchScreen(player + 1))
+        // document.querySelector(".boatholder").innerHTML = '<button id="playerViewbutton">temp example</button>'
+        document.getElementById("playerViewbutton").remove()
     }
 }
 

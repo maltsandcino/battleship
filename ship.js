@@ -9,6 +9,7 @@ export default class Ship{
     }
 
     hits(){
+        console.log("hits")
         this.hitsTaken += 1
         this.sunk = this.isSunk()
         return this.sunk
